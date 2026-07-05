@@ -55,21 +55,24 @@
 <body class="flex flex-col items-center justify-center min-h-screen p-4">
 
     <div class="w-full max-w-md bg-gray-900/50 border border-gray-800 p-8 rounded-2xl shadow-xl backdrop-blur-sm flex flex-col items-center">
-        <h2 class="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">Telegram Appeal Helper</h2>
         
-        <div class="form-control" id="compDiv">
-            <input type="text" id="companyName" required>
-            <label id="lblComp">Company Name</label>
-        </div>
+        <div id="formContainer" class="w-full flex flex-col items-center">
+            <h2 class="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">Telegram Appeal Helper</h2>
+            
+            <div class="form-control">
+                <input type="text" id="companyName" required>
+                <label>Company Name</label>
+            </div>
 
-        <div class="form-control" id="linkDiv">
-            <input type="text" id="channelLink" required>
-            <label id="lblLink">Channel Link (e.g. NSi39s)</label>
-        </div>
+            <div class="form-control">
+                <input type="text" id="channelLink" required>
+                <label>Channel Link / Code</label>
+            </div>
 
-        <div class="form-control" id="sigDiv">
-            <input type="text" id="signature" required>
-            <label id="lblSig">Your Name / Signature</label>
+            <div class="form-control">
+                <input type="text" id="signature" required>
+                <label>Your Name / Signature</label>
+            </div>
         </div>
 
         <div class="relative group mt-4">
@@ -88,7 +91,7 @@
     </div>
 
     <script>
-        // Wave Animation for Inputs
+        // Wave Animation for Labels
         const labels = document.querySelectorAll('.form-control label');
         labels.forEach(label => {
             label.innerHTML = label.innerText
@@ -97,12 +100,10 @@
                 .join('');
         });
 
-        // Email Configurations
         const primaryEmail = "support@telegram.org";
         const ccEmails = "dmca@telegram.org,dpo@telegram.org,nodalofficer@telegram.org,security@telegram.org";
 
-        // URL Hash Auto-Detect Logic
-        // Expected format: #CompanyName#ChannelLink#Signature (Use _ for spaces in hash, e.g., #Growshal#yzC1S1iYkItlZDNl#Sankalp_Nag)
+        // Check URL Hash on Load
         function checkHash() {
             const hash = window.location.hash;
             if (hash && hash.includes('#')) {
@@ -111,54 +112,67 @@
                     document.getElementById('companyName').value = parts[0].replace(/_/g, ' ');
                     document.getElementById('channelLink').value = parts[1];
                     document.getElementById('signature').value = parts[2].replace(/_/g, ' ');
+                    
+                    // Hide the form input container completely if hash is successfully loaded
+                    document.getElementById('formContainer').style.display = 'none';
                 }
             }
         }
         window.addEventListener('load', checkHash);
 
-        // Main Click Handler
+        // Link Cleaner Function to prevent t.me/t.me double errors
+        function cleanTelegramLink(inputLink) {
+            let clean = inputLink.trim();
+            // Remove protocol if exists
+            clean = clean.replace(/^https?:\/\//i, '');
+            // Remove t.me/ if exists
+            clean = clean.replace(/^t\.me\//i, '');
+            
+            // Build absolute fresh clean URL
+            if (clean.startsWith('+')) {
+                return `https://t.me/${clean}`;
+            } else {
+                return `https://t.me/+${clean}`;
+            }
+        }
+
+        // Click Logic
         document.getElementById('sendBtn').addEventListener('click', function() {
             let comp = document.getElementById('companyName').value.trim();
-            let link = document.getElementById('channelLink').value.trim();
+            let rawLink = document.getElementById('channelLink').value.trim();
             let sig = document.getElementById('signature').value.trim();
 
-            if(!comp || !link || !sig) {
-                alert("Please fill all the details first!");
+            if(!comp || !rawLink || !sig) {
+                alert("Missing appeal data! Please ensure details are filled or hash is correct.");
                 return;
             }
 
-            // Clean link logic (t.me/ prefix fix)
-            if (!link.startsWith('http://') && !link.startsWith('https://')) {
-                if (link.startsWith('t.me/')) {
-                    link = 'https://' + link;
-                } else {
-                    link = 'https://t.me/' + (link.startsWith('+') ? link : '+' + link);
-                }
-            }
+            // Cleaned channel link
+            let finalLink = cleanTelegramLink(rawLink);
 
-            // Current Dynamic Time-Stamp Creation
+            // Time and Date creation for Anti-Spam
             const now = new Date();
             const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             const dateString = now.toLocaleDateString();
-            const uniqueStamp = `[Ref: ${dateString} - ${timeString}]`;
+            const uniqueStamp = `[Ref Time: ${dateString} - ${timeString}]`;
 
-            // Anti-Spam Templates Variations
+            // Randomized Content Templates
             const templates = [
-                `Hello Telegram Team,\n\nMy channel has recently been flagged with a "SCAM" tag. I believe this is a mistake or a result of malicious bulk/fake reporting by competitors.\n\nChannel Details:\n• Channel Link: ${link}\n• Possible Reason: Bulk malicious reporting\n\nThis channel is officially managed and operated by ${comp}. Our channel is strictly dedicated to updates and helpful content. We have never engaged in any fraudulent activities, scams, or spam.\n\nKindly review our channel and remove this tag. As a team, we are ready to provide any company registration documents, legal, or identity proofs if required.\n\nThank you,\n${sig}\nTeam ${comp}\n\n${uniqueStamp}`,
+                `Hello Telegram Team,\n\nMy channel has recently been flagged with a "SCAM" tag. I believe this is a mistake or a result of malicious bulk/fake reporting by competitors.\n\nChannel Details:\n• Channel Link: ${finalLink}\n• Possible Reason: Bulk malicious reporting\n\nThis channel is officially managed and operated by ${comp}. Our channel is strictly dedicated to sports updates. We have never engaged in any fraudulent activities, scams, or spam.\n\nKindly review our channel and remove this tag. As a registered agency, we are ready to provide any company registration documents, legal, or identity proofs if required.\n\nThank you,\n${sig}\nTeam ${comp}\n\n${uniqueStamp}`,
                 
-                `Dear Telegram Support,\n\nWe noticed that our community channel has been mistakenly tagged as "SCAM". This appears to be a targeted attack by competitors using false bulk reporting.\n\nChannel Information:\n• Link: ${link}\n• Root Cause: Competitor mass reporting\n\nThis platform is legitimately run by ${comp}. We strictly share authentic updates and follow all terms of service. No scam or fraudulent activity has ever occurred here.\n\nWe request you to kindly investigate and lift this tag. We can submit official registration and identity verifications instantly upon request.\n\nRegards,\n${sig}\n${comp} Management\n\n${uniqueStamp}`,
+                `Dear Telegram Support,\n\nWe noticed that our community channel has been mistakenly tagged as "SCAM". This appears to be a targeted attack by competitors using false bulk reporting.\n\nChannel Information:\n• Link: ${finalLink}\n• Root Cause: Competitor mass reporting\n\nThis platform is legitimately run by ${comp}. We strictly share authentic sports updates and follow all terms of service. No scam or fraudulent activity has ever occurred here.\n\nWe request you to kindly investigate and lift this tag. We can submit official registration and identity verifications instantly upon request.\n\nRegards,\n${sig}\n${comp} Management\n\n${uniqueStamp}`,
                 
-                `Hi Telegram Team,\n\nOur official channel is currently showing a "SCAM" warning tag. This is completely erroneous and seems to be the result of a coordinated fake reporting campaign against us.\n\nDetails:\n• Link: ${link}\n• Context: Malicious mass reports\n\nThe channel is owned and handled by ${comp}. We only broadcast clean, safe sports and informational content. We strongly stand against scams.\n\nPlease check the logs and remove this false flag. We are fully prepared to share all necessary corporate and legal documents.\n\nBest regards,\n${sig}\nOn behalf of ${comp}\n\n${uniqueStamp}`
+                `Hi Telegram Team,\n\nOur official channel is currently showing a "SCAM" warning tag. This is completely erroneous and seems to be the result of a coordinated fake reporting campaign against us.\n\nDetails:\n• Link: ${finalLink}\n• Context: Malicious mass reports\n\nThe channel is owned and handled by ${comp}. We only broadcast clean, safe sports and informational content. We strongly stand against scams.\n\nPlease check the logs and remove this false flag. We are fully prepared to share all necessary corporate and legal documents.\n\nBest regards,\n${sig}\nOn behalf of ${comp}\n\n${uniqueStamp}`
             ];
 
-            // Select random template
+            // Pick random template
             const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
             const subject = `Appeal Against Unjustified Scam Tag - ${comp}`;
 
-            // Building Mailto link with CC and Body
+            // Generate mailto URL
             const mailtoUrl = `mailto:${encodeURIComponent(primaryEmail)}?cc=${encodeURIComponent(ccEmails)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(randomTemplate)}`;
             
-            // Open the mail application
+            // Open App
             window.location.href = mailtoUrl;
         });
     </script>
