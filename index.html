@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Appeal Generator</title>
+    <!-- Tailwind CSS Script -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -56,6 +57,7 @@
 
     <div class="w-full max-w-md bg-gray-900/50 border border-gray-800 p-8 rounded-2xl shadow-xl backdrop-blur-sm flex flex-col items-center">
         
+        <!-- Main Container for Inputs (Will hide if hash is present) -->
         <div id="formContainer" class="w-full flex flex-col items-center">
             <h2 class="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">Telegram Appeal Helper</h2>
             
@@ -75,6 +77,7 @@
             </div>
         </div>
 
+        <!-- Action Button (Always Visible) -->
         <div class="relative group mt-4">
             <button id="sendBtn" class="relative inline-block p-px font-semibold leading-6 text-white bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95">
                 <span class="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500 p-[2px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
@@ -103,32 +106,33 @@
         const primaryEmail = "support@telegram.org";
         const ccEmails = "dmca@telegram.org,dpo@telegram.org,nodalofficer@telegram.org,security@telegram.org";
 
-        // Check URL Hash on Load
-        function checkHash() {
+        // Check URL Hash on Load and Clean URL immediately
+        function checkAndCleanHash() {
             const hash = window.location.hash;
             if (hash && hash.includes('#')) {
                 const parts = hash.split('#').filter(p => p !== "");
                 if (parts.length >= 3) {
+                    // Fill inputs in background
                     document.getElementById('companyName').value = parts[0].replace(/_/g, ' ');
                     document.getElementById('channelLink').value = parts[1];
                     document.getElementById('signature').value = parts[2].replace(/_/g, ' ');
                     
-                    // Hide the form input container completely if hash is successfully loaded
+                    // Hide the form input container completely
                     document.getElementById('formContainer').style.display = 'none';
+
+                    // MAGIC LINE: URL से हैश को तुरंत हटा देगा बिना पेज रिफ्रेश किए
+                    window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
                 }
             }
         }
-        window.addEventListener('load', checkHash);
+        window.addEventListener('load', checkAndCleanHash);
 
         // Link Cleaner Function to prevent t.me/t.me double errors
         function cleanTelegramLink(inputLink) {
             let clean = inputLink.trim();
-            // Remove protocol if exists
             clean = clean.replace(/^https?:\/\//i, '');
-            // Remove t.me/ if exists
             clean = clean.replace(/^t\.me\//i, '');
             
-            // Build absolute fresh clean URL
             if (clean.startsWith('+')) {
                 return `https://t.me/${clean}`;
             } else {
@@ -143,11 +147,10 @@
             let sig = document.getElementById('signature').value.trim();
 
             if(!comp || !rawLink || !sig) {
-                alert("Missing appeal data! Please ensure details are filled or hash is correct.");
+                alert("Missing appeal data! Please ensure details are filled or link is correct.");
                 return;
             }
 
-            // Cleaned channel link
             let finalLink = cleanTelegramLink(rawLink);
 
             // Time and Date creation for Anti-Spam
