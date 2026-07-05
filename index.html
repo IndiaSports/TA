@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Appeal Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #090d16;
+            color: #fff;
+            font-family: sans-serif;
+        }
+        .form-control {
+            position: relative;
+            margin: 20px 0 35px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .form-control input {
+            background-color: transparent;
+            border: 0;
+            border-bottom: 2px #fff solid;
+            display: block;
+            width: 100%;
+            padding: 10px 0;
+            font-size: 18px;
+            color: #fff;
+        }
+        .form-control input:focus,
+        .form-control input:valid {
+            outline: 0;
+            border-bottom-color: #22d3ee;
+        }
+        .form-control label {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            pointer-events: none;
+        }
+        .form-control label span {
+            display: inline-block;
+            font-size: 18px;
+            min-width: 5px;
+            color: #94a3b8;
+            transition: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .form-control input:focus + label span,
+        .form-control input:valid + label span {
+            color: #22d3ee;
+            transform: translateY(-25px);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md bg-gray-900/50 border border-gray-800 p-8 rounded-2xl shadow-xl backdrop-blur-sm flex flex-col items-center">
+        <h2 class="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">Telegram Appeal Helper</h2>
+        
+        <div class="form-control" id="compDiv">
+            <input type="text" id="companyName" required>
+            <label id="lblComp">Company Name</label>
+        </div>
+
+        <div class="form-control" id="linkDiv">
+            <input type="text" id="channelLink" required>
+            <label id="lblLink">Channel Link (e.g. NSi39s)</label>
+        </div>
+
+        <div class="form-control" id="sigDiv">
+            <input type="text" id="signature" required>
+            <label id="lblSig">Your Name / Signature</label>
+        </div>
+
+        <div class="relative group mt-4">
+            <button id="sendBtn" class="relative inline-block p-px font-semibold leading-6 text-white bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95">
+                <span class="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500 p-[2px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
+                <span class="relative z-10 block px-6 py-3 rounded-xl bg-gray-950">
+                    <div class="relative z-10 flex items-center space-x-2">
+                        <span class="transition-all duration-500 group-hover:translate-x-1">Send Appeal Mail Now</span>
+                        <svg class="w-6 h-6 transition-transform duration-500 group-hover:translate-x-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Wave Animation for Inputs
+        const labels = document.querySelectorAll('.form-control label');
+        labels.forEach(label => {
+            label.innerHTML = label.innerText
+                .split('')
+                .map((letter, idx) => `<span style="transition-delay:${idx * 30}ms">${letter === ' ' ? '&nbsp;' : letter}</span>`)
+                .join('');
+        });
+
+        // Email Configurations
+        const primaryEmail = "support@telegram.org";
+        const ccEmails = "dmca@telegram.org,dpo@telegram.org,nodalofficer@telegram.org,security@telegram.org";
+
+        // URL Hash Auto-Detect Logic
+        // Expected format: #CompanyName#ChannelLink#Signature (Use _ for spaces in hash, e.g., #Growshal#yzC1S1iYkItlZDNl#Sankalp_Nag)
+        function checkHash() {
+            const hash = window.location.hash;
+            if (hash && hash.includes('#')) {
+                const parts = hash.split('#').filter(p => p !== "");
+                if (parts.length >= 3) {
+                    document.getElementById('companyName').value = parts[0].replace(/_/g, ' ');
+                    document.getElementById('channelLink').value = parts[1];
+                    document.getElementById('signature').value = parts[2].replace(/_/g, ' ');
+                }
+            }
+        }
+        window.addEventListener('load', checkHash);
+
+        // Main Click Handler
+        document.getElementById('sendBtn').addEventListener('click', function() {
+            let comp = document.getElementById('companyName').value.trim();
+            let link = document.getElementById('channelLink').value.trim();
+            let sig = document.getElementById('signature').value.trim();
+
+            if(!comp || !link || !sig) {
+                alert("Please fill all the details first!");
+                return;
+            }
+
+            // Clean link logic (t.me/ prefix fix)
+            if (!link.startsWith('http://') && !link.startsWith('https://')) {
+                if (link.startsWith('t.me/')) {
+                    link = 'https://' + link;
+                } else {
+                    link = 'https://t.me/' + (link.startsWith('+') ? link : '+' + link);
+                }
+            }
+
+            // Current Dynamic Time-Stamp Creation
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const dateString = now.toLocaleDateString();
+            const uniqueStamp = `[Ref: ${dateString} - ${timeString}]`;
+
+            // Anti-Spam Templates Variations
+            const templates = [
+                `Hello Telegram Team,\n\nMy channel has recently been flagged with a "SCAM" tag. I believe this is a mistake or a result of malicious bulk/fake reporting by competitors.\n\nChannel Details:\n• Channel Link: ${link}\n• Possible Reason: Bulk malicious reporting\n\nThis channel is officially managed and operated by ${comp}. Our channel is strictly dedicated to updates and helpful content. We have never engaged in any fraudulent activities, scams, or spam.\n\nKindly review our channel and remove this tag. As a team, we are ready to provide any company registration documents, legal, or identity proofs if required.\n\nThank you,\n${sig}\nTeam ${comp}\n\n${uniqueStamp}`,
+                
+                `Dear Telegram Support,\n\nWe noticed that our community channel has been mistakenly tagged as "SCAM". This appears to be a targeted attack by competitors using false bulk reporting.\n\nChannel Information:\n• Link: ${link}\n• Root Cause: Competitor mass reporting\n\nThis platform is legitimately run by ${comp}. We strictly share authentic updates and follow all terms of service. No scam or fraudulent activity has ever occurred here.\n\nWe request you to kindly investigate and lift this tag. We can submit official registration and identity verifications instantly upon request.\n\nRegards,\n${sig}\n${comp} Management\n\n${uniqueStamp}`,
+                
+                `Hi Telegram Team,\n\nOur official channel is currently showing a "SCAM" warning tag. This is completely erroneous and seems to be the result of a coordinated fake reporting campaign against us.\n\nDetails:\n• Link: ${link}\n• Context: Malicious mass reports\n\nThe channel is owned and handled by ${comp}. We only broadcast clean, safe sports and informational content. We strongly stand against scams.\n\nPlease check the logs and remove this false flag. We are fully prepared to share all necessary corporate and legal documents.\n\nBest regards,\n${sig}\nOn behalf of ${comp}\n\n${uniqueStamp}`
+            ];
+
+            // Select random template
+            const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+            const subject = `Appeal Against Unjustified Scam Tag - ${comp}`;
+
+            // Building Mailto link with CC and Body
+            const mailtoUrl = `mailto:${encodeURIComponent(primaryEmail)}?cc=${encodeURIComponent(ccEmails)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(randomTemplate)}`;
+            
+            // Open the mail application
+            window.location.href = mailtoUrl;
+        });
+    </script>
+</body>
+</html>
